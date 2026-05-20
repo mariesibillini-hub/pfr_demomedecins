@@ -1,0 +1,6 @@
+# Exemple pour un projet Python
+__pycache__/
+*.pyc
+.env
+venv/
+.DS_Store
