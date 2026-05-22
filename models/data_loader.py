@@ -1,20 +1,24 @@
 import numpy as np
 import pandas as pd
-import streamlit as st
+from pathlib import Path
 
-@st.cache
+DATA_DIR = Path(__file__).parent.parent / "data"
+
 def charger_donnees():
-    df_med = pd.read_csv(r"C:\Users\USER\Desktop\Learning Data Analyst\DataRockStar\Projet Fil Rouge\mon_projet\data\demographie-secteurs-conventionnels.csv", sep=";")
-    df_pop = pd.read_csv(r"C:\Users\USER\Desktop\Learning Data Analyst\DataRockStar\Projet Fil Rouge\mon_projet\data\DS_POPULATIONS_HISTORIQUES_data.csv", sep=";")
-    df_deces = pd.read_csv(r"C:\Users\USER\Desktop\Learning Data Analyst\DataRockStar\Projet Fil Rouge\mon_projet\data\DS_DECES_MORTALITE_SERIES_data.csv", sep=";")
+    try:
+        df_med = pd.read_csv(DATA_DIR / "demographie-secteurs-conventionnels.csv", sep=";", encoding="utf-8-sig")
+        df_pop = pd.read_csv(DATA_DIR / "DS_POPULATIONS_HISTORIQUES_data.csv", sep=";")
+        df_deces = pd.read_csv(DATA_DIR / "DS_DECES_MORTALITE_SERIES_data.csv", sep=";")
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Un fichier est introuvable dans {DATA_DIR}")
 
-    _supprimer_inutile(df_med, df_pop, df_deces)
-    _nettoyer_types(df_med, df_pop, df_deces)
-    _ligne_total(df_med)
+    df_med, df_pop, df_deces = _supprimer_inutile(df_med, df_pop, df_deces)
+    df_med, df_pop, df_deces = _nettoyer_types(df_med, df_pop, df_deces)
+    df_med = _ligne_total(df_med)
     return df_med, df_pop, df_deces
 
 def _supprimer_inutile(df1, df2, df3):
-    # mon analyse porte uniquement sur les médecins généralistes donc je garde uniquement ces données
+    # mon analyse porte sur les médecins généralistes donc je garde uniquement ces données
     df1 = df1[df1["profession_sante"].isin(["Médecins généralistes (hors médecins à expertise particulière - MEP)", "Médecins généralistes à expertise particulière (MEP)"])].reset_index(drop=True)
     # Je supprime également les lignes incluant departement : 999, car c'est redondant (total des autres lignes)
     df1 = df1.replace({"departement" : {"999" : np.nan},
@@ -47,10 +51,8 @@ def _supprimer_inutile(df1, df2, df3):
 
 def _nettoyer_types(df1, df2, df3):
     # Renommer les colonnes et les valeurs
-    df1 = df1.rename(columns={
-        "﻿annee": 'annee',
-        "departement": "code_dep"
-    })
+    df1 = df1.rename(columns={"departement": "code_dep"})
+
     df1 = df1.replace({'libelle_secteur_conventionnel': {
         "conventionnés de secteur 2 ayant adhéré à l'Optam/Optam-CO": "conventionnés de secteur 2",
         "conventionnés de secteur 2 n'ayant pas adhéré à l'Optam/Optam-CO": "conventionnés de secteur 2"
@@ -70,16 +72,9 @@ def _nettoyer_types(df1, df2, df3):
 
     # Remplacer le type de "secteur_conventionnel" en string, car ce sont des nombres catégoriels, et certains ont des 0 significatifs
     # + ajout des 0 significatifs pour les régions et les départements.
-    df["secteur_conventionnel"] = df["secteur_conventionnel"].astype(str)
-    df = df.replace({'code_dep': {"1": "01",
-                            "2": "02",
-                            "3": "03",
-                            "4": "04",
-                            "5": "05",
-                            "6": "06",
-                            "7": "07",
-                            "8": "08",
-                            "9": "09"}})
+    df1["secteur_conventionnel"] = df1["secteur_conventionnel"].astype(str)
+    df1["code_dep"] = df1["code_dep"].str.zfill(2)
+
     return df1, df2, df3
 
 def _ligne_total(df1):
