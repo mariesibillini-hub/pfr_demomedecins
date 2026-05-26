@@ -12,8 +12,8 @@ def afficher_map(df, values, color):
         geojson=geojson_dep,
         locations="code_dep",
         featureidkey="properties.code", #
-        color=values, # effectif_medecins ou nombre_deces
-        color_continuous_scale=color, # bleu pour effectif_medecins et rouge pour nombre_deces
+        color=values, # densite_medicale_100k ou nombre_deces_100k
+        color_continuous_scale=color, # bleu pour densite_medicale_100k ou rouge pour nombre_deces_100k
         scope="europe",
         # labels={values: "Population"}
     )
@@ -23,5 +23,4 @@ def afficher_map(df, values, color):
     )
 
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-    # fig.show()
+    return fig
