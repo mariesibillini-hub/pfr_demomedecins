@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from controllers.dashboard_controller import map_2023
+from controllers.dashboard_controller import run
 
-map_2023()
+run()
 
