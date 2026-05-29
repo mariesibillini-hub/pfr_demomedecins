@@ -39,13 +39,21 @@ def _supprimer_inutile(df1, df2, df3):
     # Suppression des lignes hors des années étudiées (2010 à 2024)
     df3 = df3[
         (df3["GEO_OBJECT"] == "DEP") 
-        & (df3["FREQ"] == "A")
-        & (df3["OBS_STATUS"] == "A")
-        & (df3["OBS_STATUS_FR"] == "D")
-        & (df3["EC_MEASURE"].isin(["DTH_PLACE_RES", "MOR_STANDARD_RT"]))
-        & (df3["AGE"].isin(["Y_LT1", "Y_LT65", "Y_GE65", "_T"]))]
+        & (df3["FREQ"] == "A") # observations annuelles
+        & (df3["OBS_STATUS"] == "A") # valeur normale
+        & (df3["OBS_STATUS_FR"] == "D") # valeur definitive
+        & (df3["EC_MEASURE"].isin([
+                        "DTH_PLACE_RES", # décès enregistrés dans le département de résidence
+                        "MOR_STANDARD_RT" # taux de mortalité standardisé
+                    ]))
+        & (df3["AGE"].isin([
+                        "Y_LT1", # moins de 1 an
+                        "Y_LT65", # moins de 65 ans
+                        "Y_GE65", # 65 ans ou plus
+                        "_T" # tous
+                    ]))]
     df3["TIME_PERIOD"] = df3["TIME_PERIOD"].astype(int)
-    df3 = df3[(df3["TIME_PERIOD"].isin(ok_year))]
+    df3 = df3[(df3["TIME_PERIOD"].isin(ok_year))] # ok_year est compris entre 2010 et 2023 inclus
     # Suppression des colonnes contenant une valeur unique
     for col in df3.columns:
         if len(df3[col].unique()) == 1:
