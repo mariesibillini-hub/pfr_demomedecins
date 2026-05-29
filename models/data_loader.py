@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from config import YEARS, KEPT_PROFESSIONS
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -19,17 +20,16 @@ def charger_donnees():
 
 def _supprimer_inutile(df1, df2, df3):
     # mon analyse porte sur les médecins généralistes donc je garde uniquement ces données
-    df1 = df1[df1["profession_sante"].isin(["Médecins généralistes (hors médecins à expertise particulière - MEP)", "Médecins généralistes à expertise particulière (MEP)"])].reset_index(drop=True)
+    df1 = df1[df1["profession_sante"].isin(KEPT_PROFESSIONS)].reset_index(drop=True)
     # Je supprime également les lignes incluant departement : 999, car c'est redondant (total des autres lignes)
     df1 = df1.replace({"departement" : {"999" : np.nan},
                        "annee" : {2024 : np.nan}}).dropna()
-    ok_year = [int(year) for year in df1['annee'].unique()]
 
     df1 = df1.drop(columns=["region", "vision generale all", "vision_generale_prescriptions", "vision profession territoire"])
 
     # Je supprime toutes les lignes inutiles pour ne garder que les lignes avec les années souhaitées (entre 2010 et 2024 incluses) 
     # et les lignes traitant des départements
-    df2 = df2[df2["TIME_PERIOD"].isin(ok_year)]
+    df2 = df2[df2["TIME_PERIOD"].isin(YEARS)]
     df2 = df2[df2["GEO_OBJECT"] == "DEP"].reset_index(drop=True)
     # Je supprimes les colonnes inutiles
     df2 = df2.drop(columns=["FREQ", "GEO_OBJECT", "POPREF_MEASURE"])
@@ -53,7 +53,7 @@ def _supprimer_inutile(df1, df2, df3):
                         "_T" # tous
                     ]))]
     df3["TIME_PERIOD"] = df3["TIME_PERIOD"].astype(int)
-    df3 = df3[(df3["TIME_PERIOD"].isin(ok_year))] # ok_year est compris entre 2010 et 2023 inclus
+    df3 = df3[(df3["TIME_PERIOD"].isin(YEARS))] # ok_year est compris entre 2010 et 2023 inclus
     # Suppression des colonnes contenant une valeur unique
     for col in df3.columns:
         if len(df3[col].unique()) == 1:
