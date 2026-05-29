@@ -1,5 +1,6 @@
 import plotly.express as px
 import requests
+import streamlit as st
 
 # geojson des départements français
 geojson_url = "https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson"
@@ -11,7 +12,7 @@ def afficher_map(df, values, color):
         df,
         geojson=geojson_dep,
         locations="code_dep",
-        featureidkey="properties.code", #
+        featureidkey="properties.code",
         color=values, # densite_medicale_100k ou nombre_deces_100k
         color_continuous_scale=color, # bleu pour densite_medicale_100k ou rouge pour nombre_deces_100k
         scope="europe",
@@ -23,4 +24,6 @@ def afficher_map(df, values, color):
     )
 
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
+    st.plotly_chart(fig, use_container_width=True)
     return fig
